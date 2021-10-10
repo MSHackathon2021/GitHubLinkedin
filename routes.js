@@ -23,7 +23,7 @@ router.get('/github/callback', (req, res) => {
     gitAccessToken = response.data.access_token;
     tempUserId = uuidv4().toString().replace("-", "");
     SetCache(`${tempUserId}:access`, gitAccessToken);
-    res.redirect(`http://localhost:3000/auth/linkedin`);
+    res.redirect(`https://githublinkedinservice.azurewebsites.net/auth/linkedin`);
   })
 })
 
@@ -34,7 +34,8 @@ router.get('/', async function (req, res) {
 router.get('/user', async function (req, res) {
 
   var linkedinUser = await GetCache(`${req.query.userId}:user`);
-  GetGitHubUserData(req.query.token).then((response) => {
+  var gitHubToken= await GetCache(`${req.query.userId}:access`);
+  GetGitHubUserData(gitHubToken).then((response) => {
     gitHubUser = response;
     var obj = { ...JSON.parse(linkedinUser), ...gitHubUser };
     res.send(obj);
@@ -49,7 +50,7 @@ router.get('/linkedin', isLoggedIn, function (req, res) {
     }
   }
   SetCache(`${tempUserId}:user`, JSON.stringify(user));
-  res.redirect(`http://localhost:3001?userdId=${tempUserId}&gitaccessToken=${gitAccessToken}`);
+  res.redirect(`https://githublinkedinapp.azurewebsites.net?userdId=${tempUserId}`);
 });
 
 router.get('/auth/linkedin', passport.authenticate('linkedin', {
